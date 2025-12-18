@@ -48,10 +48,10 @@ export default function ChangePasswordPage() {
         return
       }
 
-      setSuccess('密码修改成功')
-      setOldPassword('')
-      setNewPassword('')
-      setConfirmPassword('')
+      setSuccess('密码修改成功，正在跳转...')
+      setTimeout(() => {
+        router.push('/')
+      }, 1000)
     } catch {
       setError('修改密码失败，请重试')
     } finally {
