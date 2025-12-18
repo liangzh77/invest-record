@@ -53,7 +53,11 @@ export default function RecordList() {
       })
       const data = await res.json()
       if (res.ok) {
-        setRecords([data.record, ...records])
+        const newRecords = [data.record, ...records].sort((a, b) => {
+          if (a.date !== b.date) return b.date.localeCompare(a.date)
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        })
+        setRecords(newRecords)
         setNewContent('')
       }
     } catch (error) {
@@ -72,7 +76,12 @@ export default function RecordList() {
       })
       const data = await res.json()
       if (res.ok) {
-        setRecords(records.map((r) => (r.id === id ? data.record : r)))
+        const updatedRecords = records.map((r) => (r.id === id ? data.record : r))
+          .sort((a, b) => {
+            if (a.date !== b.date) return b.date.localeCompare(a.date)
+            return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          })
+        setRecords(updatedRecords)
       }
     } catch (error) {
       console.error('Failed to update record:', error)
