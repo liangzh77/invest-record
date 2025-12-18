@@ -110,7 +110,7 @@ export default function RecordItem({ record, onUpdate, onDelete }: RecordItemPro
       </div>
 
       <div className="flex items-center gap-2 flex-shrink-0">
-        {isPending && (
+        {isPending ? (
           <>
             <button
               onClick={() => handleStatusChange('green')}
@@ -123,6 +123,14 @@ export default function RecordItem({ record, onUpdate, onDelete }: RecordItemPro
               title="标记为红色完成"
             />
           </>
+        ) : (
+          <button
+            onClick={() => onUpdate(record.id, { status: 'pending' })}
+            className="text-xs px-2 py-1 border border-gray-300 rounded hover:bg-gray-100 text-google-gray transition-colors"
+            title="恢复到进行中"
+          >
+            恢复
+          </button>
         )}
         <button
           onClick={() => onDelete(record.id)}
