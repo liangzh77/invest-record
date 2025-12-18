@@ -22,7 +22,10 @@ export async function GET() {
 
     const records = await prisma.record.findMany({
       where: { userId: user.id },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [
+        { date: 'desc' },
+        { createdAt: 'desc' },
+      ],
     })
 
     return NextResponse.json({ records })
