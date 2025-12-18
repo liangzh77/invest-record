@@ -14,6 +14,7 @@ interface Record {
 export default function RecordList() {
   const [records, setRecords] = useState<Record[]>([])
   const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
   const [newDate, setNewDate] = useState(() => {
     const today = new Date()
     return today.toISOString().split('T')[0]
@@ -91,8 +92,13 @@ export default function RecordList() {
     }
   }
 
-  const pendingRecords = records.filter((r) => r.status === 'pending')
-  const completedRecords = records.filter((r) => r.status !== 'pending')
+  const filteredRecords = records.filter((r) =>
+    searchQuery === '' ||
+    r.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    r.date.includes(searchQuery)
+  )
+  const pendingRecords = filteredRecords.filter((r) => r.status === 'pending')
+  const completedRecords = filteredRecords.filter((r) => r.status !== 'pending')
 
   if (loading) {
     return (
@@ -104,6 +110,16 @@ export default function RecordList() {
 
   return (
     <div className="max-w-4xl mx-auto">
+      <div className="mb-4">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="搜索记录..."
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:border-google-blue focus:ring-1 focus:ring-google-blue text-sm bg-white"
+        />
+      </div>
+
       <form onSubmit={handleAdd} className="mb-8 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
         <div className="flex gap-3">
           <input
@@ -132,6 +148,10 @@ export default function RecordList() {
       {records.length === 0 ? (
         <div className="text-center py-12 text-google-gray">
           暂无记录，添加第一条吧
+        </div>
+      ) : filteredRecords.length === 0 ? (
+        <div className="text-center py-12 text-google-gray">
+          没有找到匹配的记录
         </div>
       ) : (
         <>
