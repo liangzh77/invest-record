@@ -37,13 +37,37 @@ export async function PUT(
       )
     }
 
-    const updateData: { date?: string; content?: string; status?: string } = {}
+    const updateData: {
+      date?: string
+      name?: string
+      direction?: string
+      price?: string
+      period?: string
+      source?: string
+      logic?: string
+      status?: string
+    } = {}
 
     if (body.date !== undefined) {
       updateData.date = body.date
     }
-    if (body.content !== undefined) {
-      updateData.content = body.content
+    if (body.name !== undefined) {
+      updateData.name = body.name
+    }
+    if (body.direction !== undefined) {
+      updateData.direction = body.direction
+    }
+    if (body.price !== undefined) {
+      updateData.price = body.price
+    }
+    if (body.period !== undefined) {
+      updateData.period = body.period
+    }
+    if (body.source !== undefined) {
+      updateData.source = body.source
+    }
+    if (body.logic !== undefined) {
+      updateData.logic = body.logic
     }
     if (body.status !== undefined) {
       if (!['pending', 'green', 'red'].includes(body.status)) {

@@ -6,7 +6,12 @@ import RecordItem from './RecordItem'
 interface Record {
   id: string
   date: string
-  content: string
+  name: string      // 名称
+  direction: string // 方向
+  price: string     // 价格
+  period: string    // 时段
+  source: string    // 信源
+  logic: string     // 逻辑
   status: 'pending' | 'green' | 'red'
   createdAt: string
 }
@@ -19,8 +24,14 @@ export default function RecordList() {
     const today = new Date()
     return today.toISOString().split('T')[0]
   })
-  const [newContent, setNewContent] = useState('')
+  const [newName, setNewName] = useState('')
+  const [newDirection, setNewDirection] = useState('')
+  const [newPrice, setNewPrice] = useState('')
+  const [newPeriod, setNewPeriod] = useState('')
+  const [newSource, setNewSource] = useState('')
+  const [newLogic, setNewLogic] = useState('')
   const [adding, setAdding] = useState(false)
+  const [selectedSource, setSelectedSource] = useState<string | null>(null)
 
   const fetchRecords = async () => {
     try {
@@ -42,14 +53,22 @@ export default function RecordList() {
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!newContent.trim()) return
+    if (!newName.trim()) return
 
     setAdding(true)
     try {
       const res = await fetch('/api/records', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ date: newDate, content: newContent }),
+        body: JSON.stringify({
+          date: newDate,
+          name: newName,
+          direction: newDirection,
+          price: newPrice,
+          period: newPeriod,
+          source: newSource,
+          logic: newLogic,
+        }),
       })
       const data = await res.json()
       if (res.ok) {
@@ -58,7 +77,12 @@ export default function RecordList() {
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
         })
         setRecords(newRecords)
-        setNewContent('')
+        setNewName('')
+        setNewDirection('')
+        setNewPrice('')
+        setNewPeriod('')
+        setNewSource('')
+        setNewLogic('')
       }
     } catch (error) {
       console.error('Failed to add record:', error)
@@ -101,11 +125,30 @@ export default function RecordList() {
     }
   }
 
-  const filteredRecords = records.filter((r) =>
-    searchQuery === '' ||
-    r.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    r.date.includes(searchQuery)
-  )
+  // 获取所有不重复的信源（支持用"|"分隔多个信源）
+  const allSources = Array.from(new Set(
+    records.flatMap(r => r.source.split('|').map(s => s.trim()).filter(s => s !== ''))
+  ))
+
+  const filteredRecords = records.filter((r) => {
+    // 信源筛选（支持用"|"分隔多个信源）
+    if (selectedSource) {
+      const recordSources = r.source.split('|').map(s => s.trim())
+      if (!recordSources.includes(selectedSource)) return false
+    }
+    // 搜索筛选
+    if (searchQuery === '') return true
+    const query = searchQuery.toLowerCase()
+    return (
+      r.name.toLowerCase().includes(query) ||
+      r.direction.toLowerCase().includes(query) ||
+      r.price.toLowerCase().includes(query) ||
+      r.period.toLowerCase().includes(query) ||
+      r.source.toLowerCase().includes(query) ||
+      r.logic.toLowerCase().includes(query) ||
+      r.date.includes(searchQuery)
+    )
+  })
   const pendingRecords = filteredRecords.filter((r) => r.status === 'pending')
   const completedRecords = filteredRecords.filter((r) => r.status !== 'pending')
 
@@ -130,29 +173,107 @@ export default function RecordList() {
       </div>
 
       <form onSubmit={handleAdd} className="mb-8 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
-        <div className="flex gap-3">
-          <input
-            type="date"
-            value={newDate}
-            onChange={(e) => setNewDate(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:border-google-blue focus:ring-1 focus:ring-google-blue text-sm"
-          />
-          <input
-            type="text"
-            value={newContent}
-            onChange={(e) => setNewContent(e.target.value)}
-            placeholder="输入记录内容..."
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:border-google-blue focus:ring-1 focus:ring-google-blue text-sm"
-          />
+        <div className="flex items-center gap-2">
+          <span className="w-24 flex-shrink-0">
+            <input
+              type="date"
+              value={newDate}
+              onChange={(e) => setNewDate(e.target.value)}
+              className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:border-google-blue focus:ring-1 focus:ring-google-blue text-sm"
+            />
+          </span>
+          <span className="w-[14%] flex-shrink-0">
+            <input
+              type="text"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="名称"
+              className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:border-google-blue focus:ring-1 focus:ring-google-blue text-sm"
+            />
+          </span>
+          <span className="w-[5%] flex-shrink-0">
+            <input
+              type="text"
+              value={newDirection}
+              onChange={(e) => setNewDirection(e.target.value)}
+              placeholder="方向"
+              className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:border-google-blue focus:ring-1 focus:ring-google-blue text-sm"
+            />
+          </span>
+          <span className="w-[8%] flex-shrink-0">
+            <input
+              type="text"
+              value={newPrice}
+              onChange={(e) => setNewPrice(e.target.value)}
+              placeholder="价格"
+              className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:border-google-blue focus:ring-1 focus:ring-google-blue text-sm"
+            />
+          </span>
+          <span className="w-[7%] flex-shrink-0">
+            <input
+              type="text"
+              value={newPeriod}
+              onChange={(e) => setNewPeriod(e.target.value)}
+              placeholder="时段"
+              className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:border-google-blue focus:ring-1 focus:ring-google-blue text-sm"
+            />
+          </span>
+          <span className="w-[10%] flex-shrink-0">
+            <input
+              type="text"
+              value={newSource}
+              onChange={(e) => setNewSource(e.target.value)}
+              placeholder="信源"
+              className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:border-google-blue focus:ring-1 focus:ring-google-blue text-sm"
+            />
+          </span>
+          <span className="flex-1 min-w-0">
+            <input
+              type="text"
+              value={newLogic}
+              onChange={(e) => setNewLogic(e.target.value)}
+              placeholder="逻辑"
+              className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:border-google-blue focus:ring-1 focus:ring-google-blue text-sm"
+            />
+          </span>
           <button
             type="submit"
-            disabled={adding || !newContent.trim()}
-            className="px-4 py-2 bg-google-blue text-white rounded-md hover:bg-google-blue-hover disabled:opacity-50 transition-colors text-sm"
+            disabled={adding || !newName.trim()}
+            className="px-4 py-1.5 bg-google-blue text-white rounded-md hover:bg-google-blue-hover disabled:opacity-50 transition-colors text-sm flex-shrink-0"
           >
-            {adding ? '添加中...' : '添加'}
+            {adding ? '...' : '添加'}
           </button>
         </div>
       </form>
+
+      {allSources.length > 0 && (
+        <div className="mb-4 flex items-center gap-2 flex-wrap">
+          <span className="text-sm text-gray-500 mr-2">信源:</span>
+          <button
+            onClick={() => setSelectedSource(null)}
+            className={`px-3 py-1 text-sm rounded-full transition-colors ${
+              selectedSource === null
+                ? 'bg-google-blue text-white'
+                : 'bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-600'
+            }`}
+          >
+            全部
+          </button>
+          {allSources.map((source) => (
+            <button
+              key={source}
+              onClick={() => setSelectedSource(selectedSource === source ? null : source)}
+              className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                selectedSource === source
+                  ? 'bg-google-blue text-white'
+                  : 'bg-gray-100 text-gray-400 hover:bg-gray-200 hover:text-gray-600'
+              }`}
+            >
+              {source}
+            </button>
+          ))}
+        </div>
+      )}
 
       {records.length === 0 ? (
         <div className="text-center py-12 text-google-gray">

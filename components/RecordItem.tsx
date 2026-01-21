@@ -5,10 +5,17 @@ import { useState, useRef, useEffect } from 'react'
 interface Record {
   id: string
   date: string
-  content: string
+  name: string
+  direction: string
+  price: string
+  period: string
+  source: string
+  logic: string
   status: 'pending' | 'green' | 'red'
   createdAt: string
 }
+
+type EditableField = 'date' | 'name' | 'direction' | 'price' | 'period' | 'source' | 'logic'
 
 interface RecordItemProps {
   record: Record
@@ -17,7 +24,7 @@ interface RecordItemProps {
 }
 
 export default function RecordItem({ record, onUpdate, onDelete }: RecordItemProps) {
-  const [editingField, setEditingField] = useState<'date' | 'content' | null>(null)
+  const [editingField, setEditingField] = useState<EditableField | null>(null)
   const [editValue, setEditValue] = useState('')
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null)
 
@@ -27,17 +34,15 @@ export default function RecordItem({ record, onUpdate, onDelete }: RecordItemPro
     }
   }, [editingField])
 
-  const startEditing = (field: 'date' | 'content') => {
+  const startEditing = (field: EditableField) => {
     setEditingField(field)
-    setEditValue(field === 'date' ? record.date : record.content)
+    setEditValue(record[field])
   }
 
   const finishEditing = () => {
     if (editingField && editValue.trim()) {
-      if (editingField === 'date' && editValue !== record.date) {
-        onUpdate(record.id, { date: editValue })
-      } else if (editingField === 'content' && editValue !== record.content) {
-        onUpdate(record.id, { content: editValue })
+      if (editValue !== record[editingField]) {
+        onUpdate(record.id, { [editingField]: editValue })
       }
     }
     setEditingField(null)
@@ -59,8 +64,32 @@ export default function RecordItem({ record, onUpdate, onDelete }: RecordItemPro
 
   const isPending = record.status === 'pending'
 
+  const renderEditableField = (field: EditableField, value: string, className: string, isDate = false) => {
+    if (editingField === field) {
+      return (
+        <input
+          ref={inputRef as React.RefObject<HTMLInputElement>}
+          type={isDate ? 'date' : 'text'}
+          value={editValue}
+          onChange={(e) => setEditValue(e.target.value)}
+          onBlur={finishEditing}
+          onKeyDown={handleKeyDown}
+          className={`px-2 py-1 border border-google-blue rounded text-sm ${isDate ? 'w-36' : 'w-full'}`}
+        />
+      )
+    }
+    return (
+      <span
+        onClick={() => startEditing(field)}
+        className={`inline-edit ${className}`}
+      >
+        {value || '-'}
+      </span>
+    )
+  }
+
   return (
-    <div className="flex items-center gap-3 py-3 px-4 hover:bg-gray-50 group border-b border-gray-100">
+    <div className="flex items-center gap-2 py-3 px-4 hover:bg-gray-50 group border-b border-gray-100">
       {!isPending && (
         <div
           className={`w-3 h-3 rounded-full flex-shrink-0 ${
@@ -69,44 +98,28 @@ export default function RecordItem({ record, onUpdate, onDelete }: RecordItemPro
         />
       )}
 
-      <div className="flex-1 flex items-center gap-4 min-w-0">
-        {editingField === 'date' ? (
-          <input
-            ref={inputRef as React.RefObject<HTMLInputElement>}
-            type="date"
-            value={editValue}
-            onChange={(e) => setEditValue(e.target.value)}
-            onBlur={finishEditing}
-            onKeyDown={handleKeyDown}
-            className="px-2 py-1 border border-google-blue rounded text-sm w-36"
-          />
-        ) : (
-          <span
-            onClick={() => startEditing('date')}
-            className="inline-edit text-sm text-google-gray flex-shrink-0 w-28"
-          >
-            {record.date}
-          </span>
-        )}
-
-        {editingField === 'content' ? (
-          <input
-            ref={inputRef as React.RefObject<HTMLInputElement>}
-            type="text"
-            value={editValue}
-            onChange={(e) => setEditValue(e.target.value)}
-            onBlur={finishEditing}
-            onKeyDown={handleKeyDown}
-            className="flex-1 px-2 py-1 border border-google-blue rounded text-sm"
-          />
-        ) : (
-          <span
-            onClick={() => startEditing('content')}
-            className="inline-edit text-sm text-gray-700 flex-1 truncate"
-          >
-            {record.content}
-          </span>
-        )}
+      <div className="flex-1 flex items-center gap-2 min-w-0">
+        <span className="w-24 flex-shrink-0">
+          {renderEditableField('date', record.date, 'text-sm text-google-gray truncate block', true)}
+        </span>
+        <span className="w-[14%] flex-shrink-0">
+          {renderEditableField('name', record.name, 'text-sm font-medium text-gray-800 truncate block')}
+        </span>
+        <span className="w-[5%] flex-shrink-0">
+          {renderEditableField('direction', record.direction, 'text-sm text-gray-600 truncate block')}
+        </span>
+        <span className="w-[8%] flex-shrink-0">
+          {renderEditableField('price', record.price, 'text-sm text-gray-600 truncate block')}
+        </span>
+        <span className="w-[7%] flex-shrink-0">
+          {renderEditableField('period', record.period, 'text-sm text-gray-500 truncate block')}
+        </span>
+        <span className="w-[10%] flex-shrink-0">
+          {renderEditableField('source', record.source, 'text-sm text-gray-500 truncate block')}
+        </span>
+        <span className="flex-1 min-w-0">
+          {renderEditableField('logic', record.logic, 'text-sm text-gray-500 truncate block')}
+        </span>
       </div>
 
       <div className="flex items-center gap-2 flex-shrink-0">

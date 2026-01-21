@@ -56,11 +56,11 @@ export async function POST(request: Request) {
       )
     }
 
-    const { date, content } = await request.json()
+    const { date, name, direction, price, period, source, logic } = await request.json()
 
-    if (!date || !content) {
+    if (!date || !name) {
       return NextResponse.json(
-        { error: '日期和内容不能为空' },
+        { error: '日期和名称不能为空' },
         { status: 400 }
       )
     }
@@ -68,7 +68,12 @@ export async function POST(request: Request) {
     const record = await prisma.record.create({
       data: {
         date,
-        content,
+        name,
+        direction: direction || '',
+        price: price || '',
+        period: period || '',
+        source: source || '',
+        logic: logic || '',
         status: 'pending',
         userId: user.id,
       }

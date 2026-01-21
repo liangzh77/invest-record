@@ -19,7 +19,12 @@ model User {
 model Record {
   id        String   @id @default(cuid())
   date      String
-  content   String
+  name      String   // 名称
+  direction String   // 方向
+  price     String   // 价格
+  period    String   // 时段
+  source    String   // 信源
+  logic     String   // 逻辑
   status    String   @default("pending") // pending, green, red
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
