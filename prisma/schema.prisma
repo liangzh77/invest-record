@@ -17,17 +17,18 @@ model User {
 }
 
 model Record {
-  id        String   @id @default(cuid())
-  date      String
-  name      String   // 名称
-  direction String   // 方向
-  price     String   // 价格
-  period    String   // 时段
-  source    String   // 信源
-  logic     String   // 逻辑
-  status    String   @default("pending") // pending, green, red
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String   @id @default(cuid())
+  date        String
+  name        String   // 名称
+  direction   String   // 方向
+  price       String   // 价格
+  period      String   // 时段
+  source      String   // 信源
+  logic       String   // 逻辑
+  status      String   @default("pending") // 信源状态: pending(进行中), green(盈利), red(亏损)
+  tradeStatus String   @default("none")    // 交易状态: none(未交易), trading(交易进行中), profit(交易盈利), loss(交易亏损)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

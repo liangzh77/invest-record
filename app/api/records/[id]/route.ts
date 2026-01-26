@@ -46,6 +46,7 @@ export async function PUT(
       source?: string
       logic?: string
       status?: string
+      tradeStatus?: string
     } = {}
 
     if (body.date !== undefined) {
@@ -72,11 +73,20 @@ export async function PUT(
     if (body.status !== undefined) {
       if (!['pending', 'green', 'red'].includes(body.status)) {
         return NextResponse.json(
-          { error: '无效的状态值' },
+          { error: '无效的信源状态值' },
           { status: 400 }
         )
       }
       updateData.status = body.status
+    }
+    if (body.tradeStatus !== undefined) {
+      if (!['none', 'trading', 'profit', 'loss'].includes(body.tradeStatus)) {
+        return NextResponse.json(
+          { error: '无效的交易状态值' },
+          { status: 400 }
+        )
+      }
+      updateData.tradeStatus = body.tradeStatus
     }
 
     const record = await prisma.record.update({

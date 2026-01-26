@@ -13,6 +13,7 @@ interface Record {
   source: string    // 信源
   logic: string     // 逻辑
   status: 'pending' | 'green' | 'red'
+  tradeStatus: 'none' | 'trading' | 'profit' | 'loss'
   createdAt: string
 }
 
@@ -32,6 +33,7 @@ export default function RecordList() {
   const [newLogic, setNewLogic] = useState('')
   const [adding, setAdding] = useState(false)
   const [selectedSource, setSelectedSource] = useState<string | null>(null)
+  const [tradeMode, setTradeMode] = useState(false)
 
   const fetchRecords = async () => {
     try {
@@ -130,7 +132,8 @@ export default function RecordList() {
     records.flatMap(r => r.source.split('|').map(s => s.trim()).filter(s => s !== ''))
   ))
 
-  const filteredRecords = records.filter((r) => {
+  // 基础筛选：信源筛选和搜索筛选
+  const baseFilteredRecords = records.filter((r) => {
     // 信源筛选（支持用"|"分隔多个信源）
     if (selectedSource) {
       const recordSources = r.source.split('|').map(s => s.trim())
@@ -149,8 +152,27 @@ export default function RecordList() {
       r.date.includes(searchQuery)
     )
   })
-  const pendingRecords = filteredRecords.filter((r) => r.status === 'pending')
-  const completedRecords = filteredRecords.filter((r) => r.status !== 'pending')
+
+  // 根据模式筛选并分组
+  let topRecords: Record[] = []
+  let bottomRecords: Record[] = []
+  let topLabel = ''
+  let bottomLabel = ''
+
+  if (tradeMode) {
+    // 交易模式：不显示未交易的(none)
+    const tradingRecords = baseFilteredRecords.filter(r => r.tradeStatus !== 'none')
+    topRecords = tradingRecords.filter(r => r.tradeStatus === 'trading')
+    bottomRecords = tradingRecords.filter(r => r.tradeStatus === 'profit' || r.tradeStatus === 'loss')
+    topLabel = '交易进行中'
+    bottomLabel = '交易完成'
+  } else {
+    // 信源模式：显示所有记录
+    topRecords = baseFilteredRecords.filter(r => r.status === 'pending')
+    bottomRecords = baseFilteredRecords.filter(r => r.status !== 'pending')
+    topLabel = '信源进行中'
+    bottomLabel = '信源完成'
+  }
 
   if (loading) {
     return (
@@ -272,6 +294,22 @@ export default function RecordList() {
               {source}
             </button>
           ))}
+          <div className="flex-1"></div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500">交易</span>
+            <button
+              onClick={() => setTradeMode(!tradeMode)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                tradeMode ? 'bg-google-blue' : 'bg-gray-300'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  tradeMode ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
         </div>
       )}
 
@@ -279,21 +317,21 @@ export default function RecordList() {
         <div className="text-center py-12 text-google-gray">
           暂无记录，添加第一条吧
         </div>
-      ) : filteredRecords.length === 0 ? (
+      ) : (topRecords.length === 0 && bottomRecords.length === 0) ? (
         <div className="text-center py-12 text-google-gray">
           没有找到匹配的记录
         </div>
       ) : (
         <>
-          {pendingRecords.length > 0 && (
+          {topRecords.length > 0 && (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
               <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
                 <h2 className="text-sm font-medium text-google-gray">
-                  进行中 ({pendingRecords.length})
+                  {topLabel} ({topRecords.length})
                 </h2>
               </div>
               <div>
-                {pendingRecords.map((record) => (
+                {topRecords.map((record) => (
                   <RecordItem
                     key={record.id}
                     record={record}
@@ -305,15 +343,15 @@ export default function RecordList() {
             </div>
           )}
 
-          {completedRecords.length > 0 && (
+          {bottomRecords.length > 0 && (
             <div className="bg-white rounded-lg shadow-sm border border-gray-200">
               <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
                 <h2 className="text-sm font-medium text-google-gray">
-                  已完成 ({completedRecords.length})
+                  {bottomLabel} ({bottomRecords.length})
                 </h2>
               </div>
               <div>
-                {completedRecords.map((record) => (
+                {bottomRecords.map((record) => (
                   <RecordItem
                     key={record.id}
                     record={record}

@@ -75,6 +75,7 @@ export async function POST(request: Request) {
         source: source || '',
         logic: logic || '',
         status: 'pending',
+        tradeStatus: 'none',
         userId: user.id,
       }
     })
