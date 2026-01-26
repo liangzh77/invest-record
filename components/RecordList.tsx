@@ -183,7 +183,7 @@ export default function RecordList() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-6xl mx-auto">
       <div className="mb-4">
         <input
           type="text"

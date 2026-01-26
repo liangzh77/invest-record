@@ -74,11 +74,17 @@ export default function RecordItem({ record, onUpdate, onDelete }: RecordItemPro
   const handleMenuAction = (action: string) => {
     setMenuOpen(false)
     switch (action) {
+      case 'source-pending':
+        onUpdate(record.id, { status: 'pending' })
+        break
       case 'source-profit':
         onUpdate(record.id, { status: 'green' })
         break
       case 'source-loss':
         onUpdate(record.id, { status: 'red' })
+        break
+      case 'trade-trading':
+        onUpdate(record.id, { tradeStatus: 'trading' })
         break
       case 'trade-profit':
         onUpdate(record.id, { tradeStatus: 'profit' })
@@ -116,8 +122,36 @@ export default function RecordItem({ record, onUpdate, onDelete }: RecordItemPro
     )
   }
 
+  const getSourceStatusBadge = () => {
+    switch (record.status) {
+      case 'green':
+        return <span className="px-1.5 py-0.5 text-xs rounded bg-green-100 text-google-green">盈</span>
+      case 'red':
+        return <span className="px-1.5 py-0.5 text-xs rounded bg-red-100 text-google-red">亏</span>
+      default:
+        return <span className="px-1.5 py-0.5 text-xs rounded bg-gray-100 text-gray-500">-</span>
+    }
+  }
+
+  const getTradeStatusBadge = () => {
+    switch (record.tradeStatus) {
+      case 'trading':
+        return <span className="px-1.5 py-0.5 text-xs rounded bg-blue-100 text-google-blue">中</span>
+      case 'profit':
+        return <span className="px-1.5 py-0.5 text-xs rounded bg-green-100 text-google-green">盈</span>
+      case 'loss':
+        return <span className="px-1.5 py-0.5 text-xs rounded bg-red-100 text-google-red">亏</span>
+      default:
+        return <span className="px-1.5 py-0.5 text-xs rounded bg-gray-100 text-gray-400">-</span>
+    }
+  }
+
   return (
     <div className="flex items-center gap-2 py-3 px-4 hover:bg-gray-50 group border-b border-gray-100">
+      <div className="flex items-center gap-1 flex-shrink-0 w-14">
+        {getSourceStatusBadge()}
+        {getTradeStatusBadge()}
+      </div>
       <div className="flex-1 flex items-center gap-2 min-w-0">
         <span className="w-24 flex-shrink-0">
           {renderEditableField('date', record.date, 'text-sm text-google-gray truncate block', true)}
@@ -145,44 +179,58 @@ export default function RecordItem({ record, onUpdate, onDelete }: RecordItemPro
       <div className="relative flex-shrink-0" ref={menuRef}>
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="p-1.5 rounded hover:bg-gray-200 transition-colors"
+          className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
           title="操作菜单"
         >
-          <svg className="w-5 h-5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M3 5h14a1 1 0 010 2H3a1 1 0 010-2zm0 4h14a1 1 0 010 2H3a1 1 0 010-2zm0 4h14a1 1 0 010 2H3a1 1 0 010-2z" />
+          <svg className="w-5 h-5 text-gray-400 hover:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+            <circle cx="10" cy="4" r="2" />
+            <circle cx="10" cy="10" r="2" />
+            <circle cx="10" cy="16" r="2" />
           </svg>
         </button>
         {menuOpen && (
-          <div className="absolute right-0 top-full mt-1 w-36 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+          <div className="absolute right-0 top-full mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
+            <button
+              onClick={() => handleMenuAction('source-pending')}
+              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 text-gray-700"
+            >
+              信源 → 进行中
+            </button>
             <button
               onClick={() => handleMenuAction('source-profit')}
-              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 text-gray-700"
+              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 text-google-green"
             >
               信源 → 盈利
             </button>
             <button
               onClick={() => handleMenuAction('source-loss')}
-              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 text-gray-700"
+              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 text-google-red"
             >
               信源 → 亏损
             </button>
             <div className="border-t border-gray-100 my-1"></div>
             <button
-              onClick={() => handleMenuAction('trade-profit')}
+              onClick={() => handleMenuAction('trade-trading')}
               className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 text-gray-700"
+            >
+              交易 → 进行中
+            </button>
+            <button
+              onClick={() => handleMenuAction('trade-profit')}
+              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 text-google-green"
             >
               交易 → 盈利
             </button>
             <button
               onClick={() => handleMenuAction('trade-loss')}
-              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 text-gray-700"
+              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 text-google-red"
             >
               交易 → 亏损
             </button>
             <div className="border-t border-gray-100 my-1"></div>
             <button
               onClick={() => handleMenuAction('delete')}
-              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 text-google-red"
+              className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 text-gray-400"
             >
               删除
             </button>
